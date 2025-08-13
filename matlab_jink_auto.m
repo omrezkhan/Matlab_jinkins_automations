@@ -23,3 +23,29 @@ filename = fullfile(outputFolder, 'random_plot.png');
 saveas(gcf, filename);
 
 disp(['Plot saved as ', filename]);
+
+%% % histogram_demo.m
+% histogram_auto.m
+% Generate random data and plot a histogram, then save in 'plots' folder
+
+% Generate random data
+data = randn(1000,1);
+
+% Create a histogram
+figure;
+histogram(data, 20); % 20 bins
+title('Histogram of Random Data');
+xlabel('Value');
+ylabel('Frequency');
+
+% Save the figure automatically
+outputFolder = 'plots';
+if ~exist(outputFolder, 'dir')
+    mkdir(outputFolder); % Create folder if it doesn't exist
+end
+
+filename = fullfile(outputFolder, 'histogram_plot.png');
+saveas(gcf, filename);
+
+disp(['Plot saved as ', filename]);
+
