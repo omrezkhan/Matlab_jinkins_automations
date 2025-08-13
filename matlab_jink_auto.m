@@ -49,3 +49,25 @@ saveas(gcf, filename);
 
 disp(['Plot saved as ', filename]);
 
+%%
+%% MATLAB Automation Script - Add Boxplot
+% Generate random data
+dataBox = randn(100,1);
+
+% Create a boxplot
+figure;
+boxplot(dataBox);
+title('Boxplot of Random Data');
+ylabel('Value');
+
+% Save the figure automatically
+outputFolder = 'plots';
+if ~exist(outputFolder, 'dir')
+    mkdir(outputFolder); % Create folder if it doesn't exist
+end
+
+filenameBoxplot = fullfile(outputFolder, 'boxplot_random_data.png');
+saveas(gcf, filenameBoxplot);
+
+disp(['Boxplot saved as ', filenameBoxplot]);
+
