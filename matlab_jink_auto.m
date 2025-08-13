@@ -111,6 +111,44 @@ filenameCSV = fullfile(outputFolder, 'noisy_sine_wave_data.csv');
 writematrix(data, filenameCSV);
 disp(['Data saved as ', filenameCSV]);
 
+%%
+%% MATLAB Automation Script - Multi Dataset Analysis
+% Generate multiple random datasets, plot boxplots, and save summary stats
+
+numDatasets = 5;        % Number of datasets
+datasetSize = 100;      % Size of each dataset
+outputFolder = 'plots';
+
+if ~exist(outputFolder, 'dir')
+    mkdir(outputFolder);
+end
+
+summaryStats = zeros(numDatasets, 4); % columns: mean, std, min, max
+
+for i = 1:numDatasets
+    % Generate random data
+    data = randn(datasetSize,1) + i; % slightly different mean per dataset
+    
+    % Boxplot
+    figure;
+    boxplot(data);
+    title(['Dataset ', num2str(i), ' Boxplot']);
+    ylabel('Value');
+    
+    % Save figure
+    figFile = fullfile(outputFolder, ['boxplot_dataset_', num2str(i), '.png']);
+    saveas(gcf, figFile);
+    
+    % Calculate summary stats
+    summaryStats(i,:) = [mean(data), std(data), min(data), max(data)];
+end
+
+% Save summary stats as CSV
+csvFile = fullfile(outputFolder, 'multi_dataset_summary.csv');
+writematrix(summaryStats, csvFile);
+disp(['Summary statistics saved as ', csvFile]);
+disp('Multi-dataset boxplots saved in plots folder.');
+
 
 
 
