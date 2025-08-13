@@ -71,3 +71,46 @@ saveas(gcf, filenameBoxplot);
 
 disp(['Boxplot saved as ', filenameBoxplot]);
 
+%% MATLAB Automation Script - Sine Wave with Noise
+
+% Parameters
+fs = 1000;          % Sampling frequency
+t = 0:1/fs:1;       % Time vector (1 second)
+f = 5;              % Frequency of sine wave
+noiseAmp = 0.3;     % Noise amplitude
+
+% Generate clean sine wave
+y_clean = sin(2*pi*f*t);
+
+% Add random noise
+y_noisy = y_clean + noiseAmp*randn(size(t));
+
+% Plot noisy sine wave
+figure;
+plot(t, y_noisy, 'r', 'LineWidth', 1.5);
+hold on;
+plot(t, y_clean, 'b--', 'LineWidth', 1.5);
+title('Noisy Sine Wave');
+xlabel('Time (s)');
+ylabel('Amplitude');
+legend('Noisy', 'Clean');
+grid on;
+
+% Save the figure automatically
+outputFolder = 'plots';
+if ~exist(outputFolder, 'dir')
+    mkdir(outputFolder);
+end
+filenameFig = fullfile(outputFolder, 'noisy_sine_wave.png');
+saveas(gcf, filenameFig);
+disp(['Figure saved as ', filenameFig]);
+
+% Save data as CSV
+data = [t' y_noisy'];
+filenameCSV = fullfile(outputFolder, 'noisy_sine_wave_data.csv');
+writematrix(data, filenameCSV);
+disp(['Data saved as ', filenameCSV]);
+
+
+
+
