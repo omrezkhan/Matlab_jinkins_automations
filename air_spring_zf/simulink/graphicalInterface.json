@@ -1,0 +1,21 @@
+{
+    "GraphicalInterface":{
+        "PreCompExecutionDomainType":"Unset",
+        "RootOutports":[
+            {
+                "Name":"Outport",
+                "SignalName":"x"
+            },
+            {
+                "Name":"Outport1",
+                "SignalName":"xdot"
+            },
+            {
+                "Name":"Outport2",
+                "SignalName":"xddot"
+            }
+        ],
+        "SimulinkSubDomainType":"Simulink",
+        "SolverName":"VariableStepAuto"
+    }
+}
