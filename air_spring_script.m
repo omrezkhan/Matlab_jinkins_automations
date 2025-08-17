@@ -1,78 +1,78 @@
-function air_spring_script(m, k, c, outputFolder)
-% AIR_SPRING_SCRIPT Run air spring Simulink simulation and save plots
-%
-%   air_spring_script(m, k, c, outputFolder)
-%
-%   Inputs:
-%       m           - Mass (kg)
-%       k           - Spring constant (N/m)
-%       c           - Damping coefficient (Ns/m)
-%       outputFolder- Folder to save plots and JUnit XML
+%% Air Spring System Simulation Automation Script
+% Author: Omrez Khan
+% Date: 2025-08-13
+% Description: Simulates the air spring system and saves CSV + plots automatically
 
-% Ensure output folder exists
+function air_spring_script(m, k, c)
+clc
+
+% Default values if parameters not provided
+if nargin < 3
+    m = 500;              % Mass (kg)
+    k = 20000;            % Spring stiffness (N/m)
+    c = 1500;             % Damping coefficient (Ns/m)
+end
+
+% Set Working Folder (Linux path)
+cd('/home/omrez/Downloads/MAt_working/Air_spring_jenkins');
+
+% Assign variables to base workspace for Simulink
+assignin('base', 'm', m);
+assignin('base', 'k', k);
+assignin('base', 'c', c);
+
+% Create output folder
+outputFolder = 'plots';
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
 
-% Simulation parameters
-modelName = 'air_spring_zf';  % Replace with your Simulink model name
-simTime = 10;                  % Simulation stop time (seconds)
+% Simulation Parameters
+simTime = 10;          % Simulation time in seconds
 
-% Load the Simulink model
+% Load Simulink Model
+modelName = 'air_spring_zf';
 load_system(modelName);
 
-% Prepare simulation input
-simIn = Simulink.SimulationInput(modelName);
-simIn = simIn.setVariable('m', m);
-simIn = simIn.setVariable('k', k);
-simIn = simIn.setVariable('c', c);
-simIn = simIn.setModelParameter('StopTime', num2str(simTime));  % Correct StopTime
+% Run Simulation
+simOut = sim(modelName, 'StopTime', num2str(simTime));
 
-% Run simulation
-simOut = sim(simIn);
+% Extract output data
+displacement = simOut.yout{1}.Values.Data;
+velocity     = simOut.yout{2}.Values.Data;
+acceleration = simOut.yout{3}.Values.Data;
+time         = simOut.yout{1}.Values.Time;
 
-% Example: extract output (replace with your signal names)
-time = simOut.tout;
-try
-    displacement = simOut.logsout.getElement('displacement').Values.Data;
-    velocity = simOut.logsout.getElement('velocity').Values.Data;
-catch
-    warning('No logsout signals found. Skipping plot generation.');
-    displacement = [];
-    velocity = [];
+% Optional: Timestamp for files
+timestamp = datestr(now,'yyyy_mm_dd_HH_MM_SS');
+
+% Save Data to CSV
+csvFileName = fullfile(outputFolder, ['air_spring_simulation_data_' timestamp '.csv']);
+data = [time, displacement, velocity, acceleration];
+writematrix(data, csvFileName);
+disp(['Simulation data saved to ', csvFileName]);
+
+% Plot Results
+figure('Position',[100 100 800 600]);
+subplot(3,1,1);
+plot(time, displacement, 'LineWidth', 1.5);
+xlabel('Time (s)'); ylabel('Displacement (m)');
+title('Air Spring Displacement'); grid on;
+
+subplot(3,1,2);
+plot(time, velocity, 'LineWidth', 1.5);
+xlabel('Time (s)'); ylabel('Velocity (m/s)');
+title('Air Spring Velocity'); grid on;
+
+subplot(3,1,3);
+plot(time, acceleration, 'LineWidth', 1.5);
+xlabel('Time (s)'); ylabel('Acceleration (m/s^2)');
+title('Air Spring Acceleration'); grid on;
+
+% Save figure
+figFileName = fullfile(outputFolder, ['air_spring_simulation_plot_' timestamp '.png']);
+saveas(gcf, figFileName);
+disp(['Simulation plot saved to ', figFileName]);
+
+disp('Air spring simulation completed successfully!');
 end
-
-% Save plots
-if ~isempty(displacement)
-    figure;
-    plot(time, displacement);
-    xlabel('Time (s)');
-    ylabel('Displacement (m)');
-    title('Air Spring Displacement');
-    saveas(gcf, fullfile(outputFolder, 'displacement_plot.png'));
-end
-
-if ~isempty(velocity)
-    figure;
-    plot(time, velocity);
-    xlabel('Time (s)');
-    ylabel('Velocity (m/s)');
-    title('Air Spring Velocity');
-    saveas(gcf, fullfile(outputFolder, 'velocity_plot.png'));
-end
-
-% Optional: Generate JUnit XML test result for Jenkins
-resultsFile = fullfile(outputFolder, 'results.xml');
-fid = fopen(resultsFile, 'w');
-fprintf(fid, '<?xml version="1.0" encoding="UTF-8"?>\n');
-fprintf(fid, '<testsuite name="AirSpringTest">\n');
-fprintf(fid, '  <testcase classname="AirSpring" name="SimulationRun"/>\n');
-fprintf(fid, '</testsuite>\n');
-fclose(fid);
-
-% Close the model without saving changes
-close_system(modelName, 0);
-
-disp('Simulation completed successfully.');
-end
-
