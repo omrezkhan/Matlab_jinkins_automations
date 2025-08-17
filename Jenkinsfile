@@ -5,9 +5,9 @@ pipeline {
         string(name: 'MASS', defaultValue: '500', description: 'Mass (kg)')
         string(name: 'STIFFNESS', defaultValue: '20000', description: 'Spring stiffness (N/m)')
         string(name: 'DAMPING', defaultValue: '1500', description: 'Damping coefficient (Ns/m)')
-        string(name: 'MAX_DISPLACEMENT', defaultValue: '0.1', description: 'Maximum allowed displacement (m)')
-        string(name: 'MAX_VELOCITY', defaultValue: '1.0', description: 'Maximum allowed velocity (m/s)')
-        string(name: 'MAX_ACCELERATION', defaultValue: '5.0', description: 'Maximum allowed acceleration (m/s^2)')
+        string(name: 'THRESHOLD_MIN', defaultValue: '0.1', description: 'Minimum acceptable value for pass/fail check')
+        string(name: 'THRESHOLD_MAX', defaultValue: '1.0', description: 'Maximum acceptable value for pass/fail check')
+        string(name: 'THRESHOLD_STEP', defaultValue: '5.0', description: 'Step or tolerance for pass/fail check')
     }
 
     environment {
@@ -38,10 +38,8 @@ pipeline {
 
         stage('Run MATLAB Script') {
             steps {
-                echo "Running air_spring_script with parameters..."
-                sh """${MATLAB_PATH} -batch "cd('${WORKSPACE_DIR}'); air_spring_script(...
-                    ${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING}, '${WORKSPACE_DIR}/plots', ...
-                    ${params.MAX_DISPLACEMENT}, ${params.MAX_VELOCITY}, ${params.MAX_ACCELERATION})" """
+                echo "Running air_spring_script with parameters: M=${params.MASS}, K=${params.STIFFNESS}, C=${params.DAMPING}"
+                sh """${MATLAB_PATH} -batch "cd('${WORKSPACE_DIR}'); air_spring_script(${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING}, '${WORKSPACE_DIR}/plots', ${params.THRESHOLD_MIN}, ${params.THRESHOLD_MAX}, ${params.THRESHOLD_STEP})" """
             }
         }
 
