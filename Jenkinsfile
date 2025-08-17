@@ -22,6 +22,22 @@ pipeline {
             }
         }
 
+        stage('Prepare Workspace') {
+            steps {
+                echo 'Cleaning old CSV and PNG files in plots folder...'
+                sh """
+                    echo "Workspace DIR: ${WORKSPACE_DIR}/plots"
+                    mkdir -p ${WORKSPACE_DIR}/plots
+                    echo "Before cleanup:"
+                    ls -l ${WORKSPACE_DIR}/plots
+                    rm -f ${WORKSPACE_DIR}/plots/*.csv
+                    rm -f ${WORKSPACE_DIR}/plots/*.png
+                    echo "After cleanup:"
+                    ls -l ${WORKSPACE_DIR}/plots
+                """
+            }
+        }
+
         stage('Run MATLAB Script') {
             steps {
                 echo "Running air_spring_script with parameters: M=${params.MASS}, K=${params.STIFFNESS}, C=${params.DAMPING}"
@@ -51,4 +67,5 @@ pipeline {
             echo 'Pipeline failed.'
         }
     }
-} 
+}
+
