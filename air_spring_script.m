@@ -2,6 +2,7 @@
 % Author: Omrez Khan
 % Date: 2025-08-13
 % Description: Simulates the air spring system and saves CSV + plots automatically
+%              Adds JUnit XML report for Jenkins pass/fail reporting
 
 function air_spring_script(m, k, c)
 clc
@@ -75,4 +76,46 @@ saveas(gcf, figFileName);
 disp(['Simulation plot saved to ', figFileName]);
 
 disp('Air spring simulation completed successfully!');
+
+%% ---------------- JUnit XML Generation ----------------
+% Define pass/fail conditions
+maxDisplacementAllowed = 0.1; % meters
+maxVelocityAllowed     = 1.0; % m/s
+maxAccelerationAllowed = 5.0; % m/s^2
+
+passFlag = true;
+if max(abs(displacement)) > maxDisplacementAllowed
+    passFlag = false;
 end
+if max(abs(velocity)) > maxVelocityAllowed
+    passFlag = false;
+end
+if max(abs(acceleration)) > maxAccelerationAllowed
+    passFlag = false;
+end
+
+% Create JUnit XML content
+xmlFileName = fullfile(outputFolder, ['junit_air_spring_' timestamp '.xml']);
+fid = fopen(xmlFileName,'w');
+fprintf(fid,'<?xml version="1.0" encoding="UTF-8"?>\n');
+fprintf(fid,'<testsuites>\n');
+fprintf(fid,'  <testsuite name="AirSpringSimulation" tests="1" failures="%d">\n', ~passFlag);
+fprintf(fid,'    <testcase classname="AirSpringSimulation" name="CheckLimits">\n');
+if ~passFlag
+    fprintf(fid,'      <failure message="Limits exceeded">Simulation exceeded allowed limits.</failure>\n');
+end
+fprintf(fid,'    </testcase>\n');
+fprintf(fid,'  </testsuite>\n');
+fprintf(fid,'</testsuites>\n');
+fclose(fid);
+
+disp(['JUnit XML report generated: ', xmlFileName]);
+
+% Return pass/fail flag (optional for MATLAB console)
+if passFlag
+    disp('Simulation PASSED all limits checks.');
+else
+    disp('Simulation FAILED limits check.');
+end
+end
+
