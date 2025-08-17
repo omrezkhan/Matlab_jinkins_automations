@@ -31,9 +31,12 @@ pipeline {
         }
 
         stage('Post-processing') {
-            steps {
-                echo 'Post-processing stage (if needed)'
-            }
+    steps {
+        echo 'Archiving results...'
+        archiveArtifacts artifacts: 'plots/*.csv, plots/*.png', fingerprint: true
+      }
+      }
+
         }
     }
 
