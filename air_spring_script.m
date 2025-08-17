@@ -4,7 +4,7 @@
 % Description: Simulates the air spring system and saves CSV + plots automatically
 %              Adds JUnit XML report for Jenkins pass/fail reporting
 
-function air_spring_script(m, k, c)
+function air_spring_script(m, k, c, outputFolder)
 clc
 
 % Default values if parameters not provided
@@ -14,19 +14,23 @@ if nargin < 3
     c = 1500;             % Damping coefficient (Ns/m)
 end
 
-% Set Working Folder (Linux path)
-cd('/home/omrez/Downloads/MAt_working/Air_spring_jenkins');
+% Default output folder if not provided
+if nargin < 4
+    outputFolder = fullfile(pwd, 'plots');  % default folder
+end
+
+% Create output folder if it does not exist
+if ~exist(outputFolder, 'dir')
+    mkdir(outputFolder);
+end
+
+% Change current directory to output folder parent
+cd(fileparts(outputFolder));
 
 % Assign variables to base workspace for Simulink
 assignin('base', 'm', m);
 assignin('base', 'k', k);
 assignin('base', 'c', c);
-
-% Create output folder
-outputFolder = 'plots';
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
 
 % Simulation Parameters
 simTime = 10;          % Simulation time in seconds
