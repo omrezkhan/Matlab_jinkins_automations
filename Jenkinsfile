@@ -22,14 +22,14 @@ pipeline {
             }
         }
 
-        stage('Clean old simulation files') {
+        stage('Prepare Workspace') {
             steps {
                 echo 'Cleaning old CSV and PNG files in plots folder...'
-                sh '''
-                mkdir -p plots
-                rm -f plots/*.csv
-                rm -f plots/*.png
-                '''
+                sh """
+                    mkdir -p plots
+                    rm -f plots/air_spring_simulation_*.csv
+                    rm -f plots/air_spring_simulation_*.png
+                """
             }
         }
 
