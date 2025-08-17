@@ -22,6 +22,17 @@ pipeline {
             }
         }
 
+        stage('Clean old simulation files') {
+            steps {
+                echo 'Cleaning old CSV and PNG files in plots folder...'
+                sh '''
+                mkdir -p plots
+                rm -f plots/*.csv
+                rm -f plots/*.png
+                '''
+            }
+        }
+
         stage('Run MATLAB Script') {
             steps {
                 echo "Running air_spring_script with parameters: M=${params.MASS}, K=${params.STIFFNESS}, C=${params.DAMPING}"
