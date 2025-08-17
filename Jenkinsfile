@@ -1,7 +1,6 @@
 pipeline {
-    agent { label 'linux-agent' }  // make sure your Jenkins node has this label
+    agent { label 'linux-agent' }
 
-    // Parameters that can be set from Jenkins UI
     parameters {
         string(name: 'MASS', defaultValue: '500', description: 'Mass (kg)')
         string(name: 'STIFFNESS', defaultValue: '20000', description: 'Spring stiffness (N/m)')
@@ -9,8 +8,8 @@ pipeline {
     }
 
     environment {
-        MATLAB_PATH = '/usr/local/MATLAB/R2025a/bin/matlab'  // Linux MATLAB path
-        WORKSPACE_DIR = '/home/omrez/Downloads/MAt_working/Air_spring_jenkins'  // Linux workspace path
+        MATLAB_PATH = '/usr/local/MATLAB/R2025a/bin/matlab'
+        WORKSPACE_DIR = '/home/omrez/Downloads/MAt_working/Air_spring_jenkins'
     }
 
     stages {
@@ -30,13 +29,17 @@ pipeline {
             }
         }
 
-        stage('Post-processing') {
-    steps {
-        echo 'Archiving results...'
-        archiveArtifacts artifacts: 'plots/*.csv, plots/*.png', fingerprint: true
-      }
-      }
+        stage('Archive Artifacts') {
+            steps {
+                echo 'Archiving simulation results...'
+                archiveArtifacts artifacts: 'plots/*.csv, plots/*.png', fingerprint: true
+            }
+        }
 
+        stage('Post-processing') {
+            steps {
+                echo 'Post-processing stage (if needed)'
+            }
         }
     }
 
