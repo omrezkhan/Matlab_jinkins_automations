@@ -10,6 +10,7 @@ pipeline {
     environment {
         MATLAB_PATH = '/usr/local/MATLAB/R2025a/bin/matlab'
         WORKSPACE_DIR = '/home/omrez/Downloads/MAt_working/Air_spring_jenkins'
+        OUTPUT_ROOT = "${WORKSPACE}/plots" // Root folder for artifacts
     }
 
     stages {
@@ -24,25 +25,34 @@ pipeline {
 
         stage('Run MATLAB Script') {
             steps {
-                echo "Running air_spring_script with parameters: M=${params.MASS}, K=${params.STIFFNESS}, C=${params.DAMPING}"
-                sh """${MATLAB_PATH} -batch "cd('${WORKSPACE_DIR}'); air_spring_script(${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING})" """
+                script {
+                    // Create timestamped folder for this run
+                    def timestamp = new Date().format("yyyy_MM_dd_HH_mm_ss")
+                    def runOutputDir = "${OUTPUT_ROOT}/${timestamp}"
+                    sh "mkdir -p ${runOutputDir}"
+
+                    echo "Running air_spring_script with parameters: M=${params.MASS}, K=${params.STIFFNESS}, C=${params.DAMPING}"
+                    sh """${MATLAB_PATH} -batch "cd('${WORKSPACE_DIR}'); air_spring_script(${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING}, '${runOutputDir}')" """
+                    
+                    // Set environment variable for later stages
+                    env.RUN_OUTPUT_DIR = runOutputDir
+                }
             }
         }
 
         stage('Archive Artifacts') {
             steps {
                 echo 'Archiving simulation results...'
-                archiveArtifacts artifacts: 'plots/*.csv, plots/*.png', fingerprint: true
+                archiveArtifacts artifacts: "${env.RUN_OUTPUT_DIR}/*.csv, ${env.RUN_OUTPUT_DIR}/*.png", fingerprint: true
             }
         }
-       stage('Publish Test Results') {
-    steps {
-        echo 'Publishing JUnit test results...'
-        junit 'plots/test_results_*.xml'
-    }
-}
 
-
+        stage('Publish Test Results') {
+            steps {
+                echo 'Publishing JUnit test results...'
+                junit "${env.RUN_OUTPUT_DIR}/test_results_*.xml"
+            }
+        }
 
         stage('Post-processing') {
             steps {

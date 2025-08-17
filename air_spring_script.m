@@ -1,9 +1,9 @@
 %% Air Spring System Simulation Automation Script
 % Author: Omrez Khan
-% Date: 2025-08-13
-% Description: Simulates the air spring system and saves CSV + plots automatically
+% Date: 2025-08-13 (Updated 2025-08-17)
+% Description: Simulates the air spring system and saves CSV + plots + JUnit XML automatically
 
-function air_spring_script(m, k, c)
+function air_spring_script(m, k, c, outputFolder)
 clc
 
 % Default values if parameters not provided
@@ -13,16 +13,12 @@ if nargin < 3
     c = 1500;             % Damping coefficient (Ns/m)
 end
 
-% Set Working Folder (Linux path)
-cd('/home/omrez/Downloads/MAt_working/Air_spring_jenkins');
+% If no output folder provided, use default
+if nargin < 4 || isempty(outputFolder)
+    outputFolder = 'plots';
+end
 
-% Assign variables to base workspace for Simulink
-assignin('base', 'm', m);
-assignin('base', 'k', k);
-assignin('base', 'c', c);
-
-% Create output folder
-outputFolder = 'plots';
+% Create output folder if it doesn't exist
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
@@ -98,3 +94,4 @@ fclose(fid);
 disp(['JUnit test results saved to ', xmlFileName]);
 
 end
+
