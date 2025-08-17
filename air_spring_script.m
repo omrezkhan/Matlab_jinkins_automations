@@ -1,104 +1,68 @@
 %% Air Spring System Simulation Automation Script
 % Author: Omrez Khan
-% Date: 2025-08-13
-% Description: Simulates the air spring system and saves CSV + plots automatically
-%              Adds JUnit XML report for Jenkins pass/fail reporting
+% Date: 2025-08-17
+% Description: Simulates the air spring system, saves CSV + plots automatically,
+%              and generates JUnit XML report for Jenkins pass/fail reporting.
 
-function air_spring_script(m, k, c, outputFolder)
-clc
+function air_spring_script(m, k, c, outputFolder, maxDisp, maxVel, maxAcc)
+clc;
 
-% Default values if parameters not provided
-if nargin < 3
-    m = 500;              % Mass (kg)
-    k = 20000;            % Spring stiffness (N/m)
-    c = 1500;             % Damping coefficient (Ns/m)
-end
+%% ---------------- Default Parameters ----------------
+if nargin < 3 || isempty(m); m = 500; end
+if nargin < 2 || isempty(k); k = 20000; end
+if nargin < 3 || isempty(c); c = 1500; end
+if nargin < 4 || isempty(outputFolder); outputFolder = 'plots'; end
 
-% Default output folder if not provided
-if nargin < 4
-    outputFolder = fullfile(pwd, 'plots');  % default folder
-end
+% Default thresholds
+if nargin < 5 || isempty(maxDisp); maxDisp = 0.1; end
+if nargin < 6 || isempty(maxVel);  maxVel  = 1.0; end
+if nargin < 7 || isempty(maxAcc);  maxAcc  = 5.0; end
 
-% Create output folder if it does not exist
-if ~exist(outputFolder, 'dir')
-    mkdir(outputFolder);
-end
-
-% Change current directory to output folder parent
-cd(fileparts(outputFolder));
-
+%% ---------------- Workspace Setup ----------------
 % Assign variables to base workspace for Simulink
 assignin('base', 'm', m);
 assignin('base', 'k', k);
 assignin('base', 'c', c);
 
-% Simulation Parameters
-simTime = 10;          % Simulation time in seconds
+% Create output folder
+if ~exist(outputFolder, 'dir'); mkdir(outputFolder); end
 
-% Load Simulink Model
-modelName = 'air_spring_zf';
+%% ---------------- Simulation ----------------
+simTime = 10;                  % Simulation time (s)
+modelName = 'air_spring_zf';   % Simulink model name
 load_system(modelName);
 
-% Run Simulation
 simOut = sim(modelName, 'StopTime', num2str(simTime));
 
-% Extract output data
+% Extract simulation data
 displacement = simOut.yout{1}.Values.Data;
 velocity     = simOut.yout{2}.Values.Data;
 acceleration = simOut.yout{3}.Values.Data;
 time         = simOut.yout{1}.Values.Time;
 
-% Optional: Timestamp for files
 timestamp = datestr(now,'yyyy_mm_dd_HH_MM_SS');
 
-% Save Data to CSV
+% Save CSV
 csvFileName = fullfile(outputFolder, ['air_spring_simulation_data_' timestamp '.csv']);
-data = [time, displacement, velocity, acceleration];
-writematrix(data, csvFileName);
+writematrix([time, displacement, velocity, acceleration], csvFileName);
 disp(['Simulation data saved to ', csvFileName]);
 
 % Plot Results
 figure('Position',[100 100 800 600]);
-subplot(3,1,1);
-plot(time, displacement, 'LineWidth', 1.5);
-xlabel('Time (s)'); ylabel('Displacement (m)');
-title('Air Spring Displacement'); grid on;
+subplot(3,1,1); plot(time, displacement,'LineWidth',1.5); xlabel('Time (s)'); ylabel('Displacement (m)'); title('Displacement'); grid on;
+subplot(3,1,2); plot(time, velocity,'LineWidth',1.5); xlabel('Time (s)'); ylabel('Velocity (m/s)'); title('Velocity'); grid on;
+subplot(3,1,3); plot(time, acceleration,'LineWidth',1.5); xlabel('Time (s)'); ylabel('Acceleration (m/s^2)'); title('Acceleration'); grid on;
 
-subplot(3,1,2);
-plot(time, velocity, 'LineWidth', 1.5);
-xlabel('Time (s)'); ylabel('Velocity (m/s)');
-title('Air Spring Velocity'); grid on;
-
-subplot(3,1,3);
-plot(time, acceleration, 'LineWidth', 1.5);
-xlabel('Time (s)'); ylabel('Acceleration (m/s^2)');
-title('Air Spring Acceleration'); grid on;
-
-% Save figure
 figFileName = fullfile(outputFolder, ['air_spring_simulation_plot_' timestamp '.png']);
 saveas(gcf, figFileName);
 disp(['Simulation plot saved to ', figFileName]);
 
-disp('Air spring simulation completed successfully!');
-
 %% ---------------- JUnit XML Generation ----------------
-% Define pass/fail conditions
-maxDisplacementAllowed = 0.1; % meters
-maxVelocityAllowed     = 1.0; % m/s
-maxAccelerationAllowed = 5.0; % m/s^2
-
 passFlag = true;
-if max(abs(displacement)) > maxDisplacementAllowed
-    passFlag = false;
-end
-if max(abs(velocity)) > maxVelocityAllowed
-    passFlag = false;
-end
-if max(abs(acceleration)) > maxAccelerationAllowed
-    passFlag = false;
-end
+if max(abs(displacement)) > maxDisp; passFlag = false; end
+if max(abs(velocity)) > maxVel;     passFlag = false; end
+if max(abs(acceleration)) > maxAcc; passFlag = false; end
 
-% Create JUnit XML content
 xmlFileName = fullfile(outputFolder, ['junit_air_spring_' timestamp '.xml']);
 fid = fopen(xmlFileName,'w');
 fprintf(fid,'<?xml version="1.0" encoding="UTF-8"?>\n');
@@ -112,14 +76,13 @@ fprintf(fid,'    </testcase>\n');
 fprintf(fid,'  </testsuite>\n');
 fprintf(fid,'</testsuites>\n');
 fclose(fid);
-
 disp(['JUnit XML report generated: ', xmlFileName]);
 
-% Return pass/fail flag (optional for MATLAB console)
 if passFlag
     disp('Simulation PASSED all limits checks.');
 else
     disp('Simulation FAILED limits check.');
 end
+
 end
 

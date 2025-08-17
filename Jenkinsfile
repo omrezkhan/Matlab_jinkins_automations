@@ -5,6 +5,9 @@ pipeline {
         string(name: 'MASS', defaultValue: '500', description: 'Mass (kg)')
         string(name: 'STIFFNESS', defaultValue: '20000', description: 'Spring stiffness (N/m)')
         string(name: 'DAMPING', defaultValue: '1500', description: 'Damping coefficient (Ns/m)')
+        string(name: 'MAX_DISPLACEMENT', defaultValue: '0.1', description: 'Maximum allowed displacement (m)')
+        string(name: 'MAX_VELOCITY', defaultValue: '1.0', description: 'Maximum allowed velocity (m/s)')
+        string(name: 'MAX_ACCELERATION', defaultValue: '5.0', description: 'Maximum allowed acceleration (m/s^2)')
     }
 
     environment {
@@ -26,7 +29,6 @@ pipeline {
             steps {
                 echo 'Cleaning old files...'
                 sh """
-                    set -e
                     mkdir -p ${WORKSPACE_DIR}/plots
                     rm -f ${WORKSPACE_DIR}/plots/*
                     echo "Workspace ready at ${WORKSPACE_DIR}/plots"
@@ -36,12 +38,10 @@ pipeline {
 
         stage('Run MATLAB Script') {
             steps {
-                echo "Running air_spring_script with parameters: M=${params.MASS}, K=${params.STIFFNESS}, C=${params.DAMPING}"
-                echo "MATLAB command: ${MATLAB_PATH} -batch \"cd('${WORKSPACE_DIR}'); air_spring_script(${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING}, '${WORKSPACE_DIR}/plots')\""
-                sh """
-                    set -e
-                    ${MATLAB_PATH} -batch "cd('${WORKSPACE_DIR}'); air_spring_script(${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING}, '${WORKSPACE_DIR}/plots')"
-                """
+                echo "Running air_spring_script with parameters..."
+                sh """${MATLAB_PATH} -batch "cd('${WORKSPACE_DIR}'); air_spring_script(...
+                    ${params.MASS}, ${params.STIFFNESS}, ${params.DAMPING}, '${WORKSPACE_DIR}/plots', ...
+                    ${params.MAX_DISPLACEMENT}, ${params.MAX_VELOCITY}, ${params.MAX_ACCELERATION})" """
             }
         }
 
