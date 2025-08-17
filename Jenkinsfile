@@ -35,6 +35,12 @@ pipeline {
                 archiveArtifacts artifacts: 'plots/*.csv, plots/*.png', fingerprint: true
             }
         }
+        stage('Publish Test Results') {
+    steps {
+        junit 'plots/*.xml'  // Jenkins will parse all test results
+    }
+}
+
 
         stage('Post-processing') {
             steps {

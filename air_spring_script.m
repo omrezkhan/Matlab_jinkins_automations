@@ -75,4 +75,26 @@ saveas(gcf, figFileName);
 disp(['Simulation plot saved to ', figFileName]);
 
 disp('Air spring simulation completed successfully!');
+
+% ---- Generate JUnit XML report ----
+testName = 'AirSpringSimulation';
+testsuiteName = 'AirSpringTests';
+xmlFileName = fullfile(outputFolder, ['test_results_' timestamp '.xml']);
+
+% Example test condition: displacement max < 0.2 m
+maxDisp = max(abs(displacement));
+pass = maxDisp < 0.2;  
+
+fid = fopen(xmlFileName, 'w');
+fprintf(fid, '<testsuite name="%s" tests="1" failures="%d">\n', testsuiteName, ~pass);
+fprintf(fid, '  <testcase classname="%s" name="%s">\n', testsuiteName, testName);
+if ~pass
+    fprintf(fid, '    <failure message="Displacement too high">Max displacement = %.4f</failure>\n', maxDisp);
+end
+fprintf(fid, '  </testcase>\n');
+fprintf(fid, '</testsuite>\n');
+fclose(fid);
+
+disp(['JUnit test results saved to ', xmlFileName]);
+
 end
