@@ -1,7 +1,7 @@
 %% Air Spring System Simulation Automation Script
 % Author: Omrez Khan
-% Date: 2025-08-13 (Updated 2025-08-17)
-% Description: Simulates the air spring system and saves CSV + plots + JUnit XML automatically
+% Date: 2025-08-13
+% Description: Simulates the air spring system and saves CSV + plots automatically
 
 function air_spring_script(m, k, c, outputFolder)
 clc
@@ -13,12 +13,12 @@ if nargin < 3
     c = 1500;             % Damping coefficient (Ns/m)
 end
 
-% If no output folder provided, use default
-if nargin < 4 || isempty(outputFolder)
+% Default output folder if not provided
+if nargin < 4
     outputFolder = 'plots';
 end
 
-% Create output folder if it doesn't exist
+% Create output folder if it does not exist
 if ~exist(outputFolder, 'dir')
     mkdir(outputFolder);
 end
@@ -30,8 +30,14 @@ simTime = 10;          % Simulation time in seconds
 modelName = 'air_spring_zf';
 load_system(modelName);
 
+% Prepare simulation input with variables
+simIn = Simulink.SimulationInput(modelName);
+simIn = simIn.setVariable('m', m);
+simIn = simIn.setVariable('k', k);
+simIn = simIn.setVariable('c', c);
+
 % Run Simulation
-simOut = sim(modelName, 'StopTime', num2str(simTime));
+simOut = sim(simIn, 'StopTime', num2str(simTime));
 
 % Extract output data
 displacement = simOut.yout{1}.Values.Data;
