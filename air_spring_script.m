@@ -83,9 +83,9 @@ disp('Air spring simulation completed successfully!');
 
 %% ---------------- JUnit XML Generation ----------------
 % Define pass/fail conditions
-maxDisplacementAllowed = 0.1; % meters
-maxVelocityAllowed     = 1.0; % m/s
-maxAccelerationAllowed = 5.0; % m/s^2
+maxDisplacementAllowed = 0.001; % meters
+maxVelocityAllowed     = 0.001; % m/s
+maxAccelerationAllowed = 0.001; % m/s^2
 
 passFlag = true;
 if max(abs(displacement)) > maxDisplacementAllowed
